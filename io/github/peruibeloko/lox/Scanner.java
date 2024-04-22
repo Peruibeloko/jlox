@@ -1,11 +1,11 @@
-package io.github.peruibeloko;
+package io.github.peruibeloko.lox;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static io.github.peruibeloko.TokenType.*;
+import static io.github.peruibeloko.lox.TokenType.*;
 
 class Scanner {
     private final String source;

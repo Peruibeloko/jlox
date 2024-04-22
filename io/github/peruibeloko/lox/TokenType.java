@@ -1,4 +1,4 @@
-package io.github.peruibeloko;
+package io.github.peruibeloko.lox;
 
 enum TokenType {
     // Single-character tokens.

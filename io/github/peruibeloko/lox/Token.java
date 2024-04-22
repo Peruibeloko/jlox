@@ -1,4 +1,4 @@
-package io.github.peruibeloko;
+package io.github.peruibeloko.lox;
 
 class Token {
     final TokenType type;
