@@ -1,4 +1,4 @@
-package io.github.peruibeloko.tool;
+package dev.carlinhos.tool;
 
 import java.io.IOException;
 import java.io.PrintWriter;

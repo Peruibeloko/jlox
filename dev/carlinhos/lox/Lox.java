@@ -1,4 +1,4 @@
-package io.github.peruibeloko.lox;
+package dev.carlinhos.lox;
 
 import java.io.BufferedReader;
 import java.io.IOException;

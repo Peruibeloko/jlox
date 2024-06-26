@@ -1,8 +1,8 @@
-package io.github.peruibeloko.lox;
+package dev.carlinhos.lox;
 
 import java.util.List;
 
-import static io.github.peruibeloko.lox.TokenType.*;
+import static dev.carlinhos.lox.TokenType.*;
 
 class Parser {
 
