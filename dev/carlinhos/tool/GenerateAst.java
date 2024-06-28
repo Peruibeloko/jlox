@@ -11,12 +11,21 @@ public class GenerateAst {
             System.err.println("Usage: generate_ast <output directory>");
             System.exit(64);
         }
+
         String outputDir = args[0];
+
         defineAst(outputDir, "Expr", Arrays.asList(
                 "Binary   : Expr left, Token operator, Expr right",
                 "Grouping : Expr expression",
                 "Literal  : Object value",
-                "Unary    : Token operator, Expr right"
+                "Unary    : Token operator, Expr right",
+                "Variable : Token name"
+        ));
+
+        defineAst(outputDir, "Stmt", Arrays.asList(
+                "Expression : Expr expression",
+                "Print      : Expr expression",
+                "Var        : Token name, Expr initializer"
         ));
     }
 
@@ -26,7 +35,7 @@ public class GenerateAst {
         String path = outputDir + "/" + baseName + ".java";
         PrintWriter writer = new PrintWriter(path, "UTF-8");
 
-        writer.println("package io.github.peruibeloko.lox;");
+        writer.println("package dev.carlinhos.lox;");
         writer.println();
         writer.println("import java.util.List;");
         writer.println();
