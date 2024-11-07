@@ -293,7 +293,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 return (double) left - (double) right;
             case PLUS:
                 if (left instanceof String || right instanceof String) {
-                    return left + (String) right;
+                    return left.toString() + right.toString();
                 }
 
                 if (left instanceof Double && right instanceof Double) {
