@@ -244,6 +244,15 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Object visitTernaryExpr(Expr.Ternary expr) {
+        if ((boolean) evaluate(expr.condition)) {
+            return evaluate(expr.left);
+        }
+
+        return evaluate(expr.right);
+    }
+
+    @Override
     public Object visitVariableExpr(Expr.Variable expr) {
         return lookUpVariable(expr.name, expr);
     }

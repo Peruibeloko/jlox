@@ -284,14 +284,21 @@ public class Parser {
     }
 
     private Expr expression() {
-        Expr left = assignment();
+        Expr expr = assignment();
 
         if (match(COMMA)) {
             Expr right = expression();
-            return new Expr.Comma(left, right);
+            return new Expr.Comma(expr, right);
         }
 
-        return left;
+        if (match(QUESTION_MARK)) {
+            Expr left = expression();
+            consume(COLON, "Expect ':' after expression");
+            Expr right = expression();
+            return new Expr.Ternary(expr, left, right);
+        }
+
+        return expr;
     }
 
     private Expr assignment() {

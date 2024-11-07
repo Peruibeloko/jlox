@@ -61,8 +61,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
     @Override
     public String visitBinaryExpr(Expr.Binary expr) {
-        return parenthesize(expr.operator.lexeme,
-                expr.left, expr.right);
+        return parenthesize(expr.operator.lexeme, expr.left, expr.right);
     }
 
     @Override
@@ -132,6 +131,11 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     }
 
     @Override
+    public String visitTernaryExpr(Expr.Ternary expr) {
+        return "(" + parenthesize("", expr.condition) + " ? " + parenthesize("", expr.left) + " : " + parenthesize("", expr.right) + ")";
+    }
+
+    @Override
     public String visitBlockStmt(Stmt.Block stmts) {
         StringBuilder builder = new StringBuilder();
 
@@ -165,11 +169,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     @Override
     public String visitIfStmt(Stmt.If stmt) {
 
-        return "(if " +
-                parenthesize("", stmt.condition) +
-                parenthesize("then", stmt.thenBranch) +
-                parenthesize("else", stmt.elseBranch) +
-                ")";
+        return "(if " + parenthesize("", stmt.condition) + parenthesize("then", stmt.thenBranch) + parenthesize("else", stmt.elseBranch) + ")";
     }
 
     @Override
@@ -194,9 +194,6 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     @Override
     public String visitWhileStmt(Stmt.While stmt) {
 
-        return "(while " +
-                stmt.condition.accept(this) +
-                stmt.body.accept(this) +
-                ")";
+        return "(while " + stmt.condition.accept(this) + stmt.body.accept(this) + ")";
     }
 }
