@@ -1,12 +1,19 @@
-package dev.carlinhos.lox;
+package dev.carlinhos.lox.passes;
+
+import dev.carlinhos.lox.Lox;
+import dev.carlinhos.lox.entities.Expr;
+import dev.carlinhos.lox.entities.Stmt;
+import dev.carlinhos.lox.entities.Token;
+import dev.carlinhos.lox.entities.TokenType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static dev.carlinhos.lox.TokenType.*;
+import static dev.carlinhos.lox.entities.TokenType.*;
 
-class Parser {
+
+public class Parser {
 
     private static class ParseError extends RuntimeException {
     }
@@ -14,11 +21,11 @@ class Parser {
     private final List<Token> tokens;
     private int current = 0;
 
-    Parser(List<Token> tokens) {
+    public Parser(List<Token> tokens) {
         this.tokens = tokens;
     }
 
-    List<Stmt> parse() {
+    public List<Stmt> parse() {
         List<Stmt> statements = new ArrayList<>();
         while (!isAtEnd()) {
             statements.add(declaration());
@@ -212,8 +219,7 @@ class Parser {
             if (expr instanceof Expr.Variable) {
                 Token name = ((Expr.Variable) expr).name;
                 return new Expr.Assign(name, value);
-            } else if (expr instanceof Expr.Get) {
-                Expr.Get get = (Expr.Get) expr;
+            } else if (expr instanceof Expr.Get get) {
                 return new Expr.Set(get.object, get.name, value);
             }
 

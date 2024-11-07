@@ -1,21 +1,23 @@
-package dev.carlinhos.lox;
+package dev.carlinhos.lox.runtime;
+
+import dev.carlinhos.lox.entities.Token;
 
 import java.util.HashMap;
 import java.util.Map;
 
-class Environment {
-    final Environment enclosing;
+public class Environment {
+    public final Environment enclosing;
     private final Map<String, Object> values = new HashMap<>();
 
-    Environment() {
+    public Environment() {
         enclosing = null;
     }
 
-    Environment(Environment enclosing) {
+    public Environment(Environment enclosing) {
         this.enclosing = enclosing;
     }
 
-    Object get(Token name) {
+    public Object get(Token name) {
         if (values.containsKey(name.lexeme)) {
             return values.get(name.lexeme);
         }
@@ -26,7 +28,7 @@ class Environment {
                 "Undefined variable '" + name.lexeme + "'.");
     }
 
-    void assign(Token name, Object value) {
+    public void assign(Token name, Object value) {
         if (values.containsKey(name.lexeme)) {
             values.put(name.lexeme, value);
             return;
@@ -41,24 +43,25 @@ class Environment {
                 "Undefined variable '" + name.lexeme + "'.");
     }
 
-    void define(String name, Object value) {
+    public void define(String name, Object value) {
         values.put(name, value);
     }
 
-    Environment ancestor(int distance) {
+    public Environment ancestor(int distance) {
         Environment environment = this;
         for (int i = 0; i < distance; i++) {
+            assert environment != null;
             environment = environment.enclosing;
         }
 
         return environment;
     }
 
-    Object getAt(int distance, String name) {
+    public Object getAt(int distance, String name) {
         return ancestor(distance).values.get(name);
     }
 
-    void assignAt(int distance, Token name, Object value) {
+    public void assignAt(int distance, Token name, Object value) {
         ancestor(distance).values.put(name.lexeme, value);
     }
 }

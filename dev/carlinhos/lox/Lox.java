@@ -1,5 +1,14 @@
 package dev.carlinhos.lox;
 
+import dev.carlinhos.lox.entities.Stmt;
+import dev.carlinhos.lox.entities.Token;
+import dev.carlinhos.lox.entities.TokenType;
+import dev.carlinhos.lox.passes.Interpreter;
+import dev.carlinhos.lox.passes.Parser;
+import dev.carlinhos.lox.passes.Resolver;
+import dev.carlinhos.lox.passes.Scanner;
+import dev.carlinhos.lox.runtime.RuntimeError;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -65,11 +74,11 @@ public class Lox {
         interpreter.interpret(statements);
     }
 
-    static void error(int line, String message) {
+    public static void error(int line, String message) {
         report(line, "", message);
     }
 
-    static void runtimeError(RuntimeError error) {
+    public static void runtimeError(RuntimeError error) {
         System.err.println(error.getMessage() +
                 "\n[line " + error.token.line + "]");
         hadRuntimeError = true;
@@ -82,7 +91,7 @@ public class Lox {
         hadError = true;
     }
 
-    static void error(Token token, String message) {
+    public static void error(Token token, String message) {
         if (token.type == TokenType.EOF) {
             report(token.line, " at end", message);
         } else {

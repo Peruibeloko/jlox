@@ -1,21 +1,23 @@
-package dev.carlinhos.lox;
+package dev.carlinhos.lox.runtime;
+
+import dev.carlinhos.lox.passes.Interpreter;
 
 import java.util.List;
 import java.util.Map;
 
-class LoxClass implements LoxCallable {
+public class LoxClass implements LoxCallable {
 
     final String name;
     private final Map<String, LoxFunction> methods;
     final LoxClass superclass;
 
-    LoxClass(String name, LoxClass superclass, Map<String, LoxFunction> methods) {
+    public LoxClass(String name, LoxClass superclass, Map<String, LoxFunction> methods) {
         this.superclass = superclass;
         this.name = name;
         this.methods = methods;
     }
 
-    LoxFunction findMethod(String name) {
+    public LoxFunction findMethod(String name) {
         if (methods.containsKey(name)) {
             return methods.get(name);
         }

@@ -1,4 +1,8 @@
-package dev.carlinhos.lox;
+package dev.carlinhos.lox.passes;
+
+import dev.carlinhos.lox.Lox;
+import dev.carlinhos.lox.entities.*;
+import dev.carlinhos.lox.runtime.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,7 +15,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     private Environment environment = globals;
     private final Map<Expr, Integer> locals = new HashMap<>();
 
-    Interpreter() {
+    public Interpreter() {
         globals.define("clock", new LoxCallable() {
             @Override
             public int arity() {
@@ -30,7 +34,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         });
     }
 
-    void interpret(List<Stmt> statements) {
+    public void interpret(List<Stmt> statements) {
         try {
             for (Stmt statement : statements) {
                 execute(statement);
@@ -57,7 +61,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
     }
 
-    void executeBlock(List<Stmt> statements, Environment environment) {
+    public void executeBlock(List<Stmt> statements, Environment environment) {
 
         Environment previous = this.environment;
 
@@ -250,15 +254,15 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Object visitUnaryExpr(Expr.Unary expr) {
         Object right = evaluate(expr.right);
 
-        switch (expr.operator.type) {
-            case BANG:
-                return !isTruthy(right);
-            case MINUS:
+        return switch (expr.operator.type) {
+            case BANG -> !isTruthy(right);
+            case MINUS -> {
                 checkNumberOperand(expr.operator, right);
-                return -(double) right;
-        }
+                yield -(double) right;
+            }
+            default -> null;
+        };
 
-        return null;
     }
 
     @Override
@@ -284,7 +288,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 return (double) left - (double) right;
             case PLUS:
                 if (left instanceof String || right instanceof String) {
-                    return (String) left + (String) right;
+                    return left + (String) right;
                 }
 
                 if (left instanceof Double && right instanceof Double) {
@@ -320,11 +324,10 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             arguments.add(evaluate(argument));
         }
 
-        if (!(callee instanceof LoxCallable)) {
+        if (!(callee instanceof LoxCallable function)) {
             throw new RuntimeError(expr.paren, "Can only call functions and classes.");
         }
 
-        LoxCallable function = (LoxCallable) callee;
         if (arguments.size() != function.arity()) {
             throw new RuntimeError(expr.paren, "Expected " + function.arity() + " arguments but got " + arguments.size() + ".");
         }

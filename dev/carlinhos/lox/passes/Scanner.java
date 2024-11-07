@@ -1,13 +1,17 @@
-package dev.carlinhos.lox;
+package dev.carlinhos.lox.passes;
+
+import dev.carlinhos.lox.Lox;
+import dev.carlinhos.lox.entities.Token;
+import dev.carlinhos.lox.entities.TokenType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static dev.carlinhos.lox.TokenType.*;
+import static dev.carlinhos.lox.entities.TokenType.*;
 
-class Scanner {
+public class Scanner {
     private final String source;
     private final List<Token> tokens = new ArrayList<>();
     private int start = 0;
@@ -36,11 +40,11 @@ class Scanner {
         keywords.put("while",  WHILE);
     }
 
-    Scanner(String source) {
+    public Scanner(String source) {
         this.source = source;
     }
 
-    List<Token> scanTokens() {
+    public List<Token> scanTokens() {
         while (!isAtEnd()) {
             // We are at the beginning of the next lexeme.
             start = current;
@@ -126,9 +130,9 @@ class Scanner {
         // Look for a fractional part.
         if (peek() == '.' && isDigit(peekNext())) {
             // Consume the "."
-            advance();
 
-            while (isDigit(peek())) advance();
+            do advance();
+            while (isDigit(peek()));
         }
 
         addToken(NUMBER,

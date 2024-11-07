@@ -1,4 +1,10 @@
-package dev.carlinhos.lox;
+package dev.carlinhos.tool;
+
+import dev.carlinhos.lox.entities.Expr;
+import dev.carlinhos.lox.entities.Stmt;
+import dev.carlinhos.lox.entities.Token;
+import dev.carlinhos.lox.passes.Parser;
+import dev.carlinhos.lox.passes.Scanner;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -33,6 +39,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
         }
     }
 
+    @SafeVarargs
     private <T> String parenthesize(String name, T... nodes) {
         StringBuilder builder = new StringBuilder();
 
@@ -95,6 +102,11 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     }
 
     @Override
+    public String visitSuperExpr(Expr.Super expr) {
+        return "";
+    }
+
+    @Override
     public String visitThisExpr(Expr.This expr) {
         return "this";
     }
@@ -147,16 +159,12 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
     @Override
     public String visitIfStmt(Stmt.If stmt) {
-        StringBuilder builder = new StringBuilder();
 
-        builder
-                .append("(if ")
-                .append(parenthesize("", stmt.condition))
-                .append(parenthesize("then", stmt.thenBranch))
-                .append(parenthesize("else", stmt.elseBranch))
-                .append(")");
-
-        return builder.toString();
+        return "(if " +
+                parenthesize("", stmt.condition) +
+                parenthesize("then", stmt.thenBranch) +
+                parenthesize("else", stmt.elseBranch) +
+                ")";
     }
 
     @Override
@@ -180,14 +188,10 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
     @Override
     public String visitWhileStmt(Stmt.While stmt) {
-        StringBuilder builder = new StringBuilder();
 
-        builder
-                .append("(while ")
-                .append(stmt.condition.accept(this))
-                .append(stmt.body.accept(this))
-                .append(")");
-
-        return builder.toString();
+        return "(while " +
+                stmt.condition.accept(this) +
+                stmt.body.accept(this) +
+                ")";
     }
 }

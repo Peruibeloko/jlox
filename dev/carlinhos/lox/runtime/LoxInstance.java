@@ -1,18 +1,20 @@
-package dev.carlinhos.lox;
+package dev.carlinhos.lox.runtime;
+
+import dev.carlinhos.lox.entities.Token;
 
 import java.util.HashMap;
 import java.util.Map;
 
-class LoxInstance {
+public class LoxInstance {
 
-    private LoxClass klass;
+    private final LoxClass klass;
     private final Map<String, Object> fields = new HashMap<>();
 
-    LoxInstance(LoxClass klass) {
+    public LoxInstance(LoxClass klass) {
         this.klass = klass;
     }
 
-    Object get(Token name) {
+    public Object get(Token name) {
         if (fields.containsKey(name.lexeme)) {
             return fields.get(name.lexeme);
         }
@@ -23,7 +25,7 @@ class LoxInstance {
         throw new RuntimeError(name, "Undefined property '" + name.lexeme + "'.");
     }
 
-    void set(Token name, Object value) {
+    public void set(Token name, Object value) {
         fields.put(name.lexeme, value);
     }
 

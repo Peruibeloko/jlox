@@ -1,18 +1,23 @@
-package dev.carlinhos.lox;
+package dev.carlinhos.lox.passes;
+
+import dev.carlinhos.lox.entities.Expr;
+import dev.carlinhos.lox.Lox;
+import dev.carlinhos.lox.entities.Stmt;
+import dev.carlinhos.lox.entities.Token;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
-class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
+public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     private final Interpreter interpreter;
     private final Stack<Map<String, Boolean>> scopes = new Stack<>();
     private FunctionType currentFunction = FunctionType.NONE;
     private ClassType currentClass = ClassType.NONE;
 
-    Resolver(Interpreter interpreter) {
+    public Resolver(Interpreter interpreter) {
         this.interpreter = interpreter;
     }
 
@@ -24,7 +29,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         NONE, CLASS, SUBCLASS
     }
 
-    void resolve(List<Stmt> statements) {
+    public void resolve(List<Stmt> statements) {
         for (Stmt statement : statements) {
             resolve(statement);
         }
