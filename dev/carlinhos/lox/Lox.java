@@ -51,27 +51,30 @@ public class Lox {
             System.out.print("> ");
             String line = reader.readLine();
             if (line == null) break;
-            run(line);
+            System.out.println(run(line));
             hadError = false;
         }
     }
 
-    private static void run(String source) {
+    private static Object run(String source) {
         Scanner scanner = new Scanner(source);
         List<Token> tokens = scanner.scanTokens();
         Parser parser = new Parser(tokens);
         List<Stmt> statements = parser.parse();
 
         // Stop if there was a syntax error.
-        if (hadError) return;
+        if (hadError) return null;
 
         Resolver resolver = new Resolver(interpreter);
         resolver.resolve(statements);
 
         // Stop if there was a resolution error.
-        if (hadError) return;
+        if (hadError) return null;
+
+        if (statements.size() == 1) return interpreter.interpret(statements.getFirst());
 
         interpreter.interpret(statements);
+        return null;
     }
 
     public static void error(int line, String message) {
@@ -79,7 +82,7 @@ public class Lox {
     }
 
     public static void runtimeError(RuntimeError error) {
-        System.err.println(error.getMessage() + "\n[line " + error.token.line + "]");
+        System.err.println("[line " + error.token.line + "] " + error.getMessage());
         hadRuntimeError = true;
     }
 

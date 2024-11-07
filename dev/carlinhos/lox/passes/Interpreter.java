@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
+public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Object> {
 
     final Environment globals = new Environment();
     private Environment environment = globals;
@@ -46,6 +46,15 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
     }
 
+    public Object interpret(Stmt stmt) {
+        try {
+            return execute(stmt);
+        } catch (RuntimeError error) {
+            Lox.runtimeError(error);
+            return null;
+        }
+    }
+
     public void executeBlock(List<Stmt> statements, Environment environment) {
 
         Environment previous = this.environment;
@@ -65,8 +74,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         locals.put(expr, depth);
     }
 
-    private void execute(Stmt stmt) {
-        stmt.accept(this);
+    private Object execute(Stmt stmt) {
+        return stmt.accept(this);
     }
 
     private Object evaluate(Expr expr) {
@@ -224,9 +233,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
-    public Void visitExpressionStmt(Stmt.Expression stmt) {
-        evaluate(stmt.expression);
-        return null;
+    public Object visitExpressionStmt(Stmt.Expression stmt) {
+        return evaluate(stmt.expression);
     }
 
     @Override
