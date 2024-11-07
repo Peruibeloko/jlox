@@ -1,9 +1,5 @@
-// test line comment
-print "nice"
+var a = 1;
+var b = 3;
 
-/* test well formed
-block comment */
-print "very nice"
-
-/**/
-print "wtf";
+print (a = 2, b);
+print a;

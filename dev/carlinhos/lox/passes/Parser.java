@@ -284,7 +284,14 @@ public class Parser {
     }
 
     private Expr expression() {
-        return assignment();
+        Expr left = assignment();
+
+        if (match(COMMA)) {
+            Expr right = expression();
+            return new Expr.Comma(left, right);
+        }
+
+        return left;
     }
 
     private Expr assignment() {

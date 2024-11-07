@@ -257,6 +257,13 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         return null;
     }
 
+    @Override
+    public Void visitCommaExpr(Expr.Comma expr) {
+        resolve(expr.left);
+        resolve(expr.right);
+        return null;
+    }
+
     // Function call.
 
     @Override

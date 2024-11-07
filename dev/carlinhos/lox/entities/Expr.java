@@ -9,6 +9,7 @@ public abstract class Expr {
     R visitGetExpr(Get expr);
     R visitAssignExpr(Assign expr);
     R visitGroupingExpr(Grouping expr);
+    R visitCommaExpr(Comma expr);
     R visitLiteralExpr(Literal expr);
     R visitLogicalExpr(Logical expr);
     R visitSetExpr(Set expr);
@@ -93,6 +94,21 @@ public abstract class Expr {
     }
 
     public final Expr expression;
+  }
+
+  public static class Comma extends Expr {
+    public Comma(Expr left, Expr right) {
+      this.left = left;
+      this.right = right;
+    }
+
+    @Override
+    public <R> R accept(Visitor<R> visitor) {
+      return visitor.visitCommaExpr(this);
+    }
+
+    public final Expr left;
+    public final Expr right;
   }
 
   public static class Literal extends Expr {
