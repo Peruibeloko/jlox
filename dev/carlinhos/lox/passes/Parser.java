@@ -25,6 +25,8 @@ public class Parser {
         this.tokens = tokens;
     }
 
+    // Internals.
+
     public List<Stmt> parse() {
         List<Stmt> statements = new ArrayList<>();
         while (!isAtEnd()) {
@@ -33,6 +35,74 @@ public class Parser {
 
         return statements;
     }
+
+    private boolean match(TokenType... types) {
+        for (TokenType type : types) {
+            if (check(type)) {
+                advance();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private Token consume(TokenType type, String message) {
+        if (check(type)) return advance();
+
+        throw error(peek(), message);
+    }
+
+    private boolean check(TokenType type) {
+        if (isAtEnd()) return false;
+        return peek().type == type;
+    }
+
+    private Token advance() {
+        if (!isAtEnd()) current++;
+        return previous();
+    }
+
+    private boolean isAtEnd() {
+        return peek().type == EOF;
+    }
+
+    private Token peek() {
+        return tokens.get(current);
+    }
+
+    private Token previous() {
+        return tokens.get(current - 1);
+    }
+
+    private ParseError error(Token token, String message) {
+        Lox.error(token, message);
+        return new ParseError();
+    }
+
+    private void synchronize() {
+        advance();
+
+        while (!isAtEnd()) {
+            if (previous().type == SEMICOLON) return;
+
+            switch (peek().type) {
+                case CLASS:
+                case FUN:
+                case VAR:
+                case FOR:
+                case IF:
+                case WHILE:
+                case PRINT:
+                case RETURN:
+                    return;
+            }
+
+            advance();
+        }
+    }
+
+    // Declarations.
 
     private Stmt declaration() {
         try {
@@ -80,14 +150,28 @@ public class Parser {
         return new Stmt.Var(name, initializer);
     }
 
-    private Stmt whileStatement() {
-        consume(LEFT_PAREN, "Expect '(' after 'while'.");
-        Expr condition = expression();
-        consume(RIGHT_PAREN, "Expect ')' after condition.");
-        Stmt body = statement();
+    private Stmt.Function function(String kind) {
+        Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
 
-        return new Stmt.While(condition, body);
+        consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
+        List<Token> parameters = new ArrayList<>();
+        if (!check(RIGHT_PAREN)) {
+            do {
+                if (parameters.size() >= 255) {
+                    error(peek(), "Can't have more than 255 parameters.");
+                }
+
+                parameters.add(consume(IDENTIFIER, "Expect parameter name."));
+            } while (match(COMMA));
+        }
+        consume(RIGHT_PAREN, "Expect ')' after parameters.");
+
+        consume(LEFT_BRACE, "Expect '{' before " + kind + " body.");
+        List<Stmt> body = block();
+        return new Stmt.Function(name, parameters, body);
     }
+
+    // Statements.
 
     private Stmt statement() {
         if (match(FOR)) return forStatement();
@@ -171,31 +255,13 @@ public class Parser {
         return new Stmt.Return(keyword, value);
     }
 
-    private Stmt expressionStatement() {
-        Expr expr = expression();
-        consume(SEMICOLON, "Expect ';' after expression.");
-        return new Stmt.Expression(expr);
-    }
+    private Stmt whileStatement() {
+        consume(LEFT_PAREN, "Expect '(' after 'while'.");
+        Expr condition = expression();
+        consume(RIGHT_PAREN, "Expect ')' after condition.");
+        Stmt body = statement();
 
-    private Stmt.Function function(String kind) {
-        Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
-
-        consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
-        List<Token> parameters = new ArrayList<>();
-        if (!check(RIGHT_PAREN)) {
-            do {
-                if (parameters.size() >= 255) {
-                    error(peek(), "Can't have more than 255 parameters.");
-                }
-
-                parameters.add(consume(IDENTIFIER, "Expect parameter name."));
-            } while (match(COMMA));
-        }
-        consume(RIGHT_PAREN, "Expect ')' after parameters.");
-
-        consume(LEFT_BRACE, "Expect '{' before " + kind + " body.");
-        List<Stmt> body = block();
-        return new Stmt.Function(name, parameters, body);
+        return new Stmt.While(condition, body);
     }
 
     private List<Stmt> block() {
@@ -207,6 +273,18 @@ public class Parser {
 
         consume(RIGHT_BRACE, "Expect '}' after block.");
         return statements;
+    }
+
+    // Expressions.
+
+    private Stmt expressionStatement() {
+        Expr expr = expression();
+        consume(SEMICOLON, "Expect ';' after expression.");
+        return new Stmt.Expression(expr);
+    }
+
+    private Expr expression() {
+        return assignment();
     }
 
     private Expr assignment() {
@@ -251,10 +329,6 @@ public class Parser {
         }
 
         return expr;
-    }
-
-    private Expr expression() {
-        return assignment();
     }
 
     private Expr equality() {
@@ -315,21 +389,7 @@ public class Parser {
         return call();
     }
 
-    private Expr finishCall(Expr callee) {
-        List<Expr> arguments = new ArrayList<>();
-        if (!check(RIGHT_PAREN)) {
-            do {
-                if (arguments.size() >= 255) {
-                    error(peek(), "Can't have more than 255 arguments.");
-                }
-                arguments.add(expression());
-            } while (match(COMMA));
-        }
-
-        Token paren = consume(RIGHT_PAREN, "Expect ')' after arguments.");
-
-        return new Expr.Call(callee, paren, arguments);
-    }
+    // Function calls.
 
     private Expr call() {
         Expr expr = primary();
@@ -347,6 +407,24 @@ public class Parser {
 
         return expr;
     }
+
+    private Expr finishCall(Expr callee) {
+        List<Expr> arguments = new ArrayList<>();
+        if (!check(RIGHT_PAREN)) {
+            do {
+                if (arguments.size() >= 255) {
+                    error(peek(), "Can't have more than 255 arguments.");
+                }
+                arguments.add(expression());
+            } while (match(COMMA));
+        }
+
+        Token paren = consume(RIGHT_PAREN, "Expect ')' after arguments.");
+
+        return new Expr.Call(callee, paren, arguments);
+    }
+
+    // Literals and reserved words.
 
     private Expr primary() {
         if (match(FALSE)) return new Expr.Literal(false);
@@ -377,71 +455,5 @@ public class Parser {
         }
 
         throw error(peek(), "Expect expression.");
-    }
-
-    private boolean match(TokenType... types) {
-        for (TokenType type : types) {
-            if (check(type)) {
-                advance();
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private Token consume(TokenType type, String message) {
-        if (check(type)) return advance();
-
-        throw error(peek(), message);
-    }
-
-    private boolean check(TokenType type) {
-        if (isAtEnd()) return false;
-        return peek().type == type;
-    }
-
-    private Token advance() {
-        if (!isAtEnd()) current++;
-        return previous();
-    }
-
-    private boolean isAtEnd() {
-        return peek().type == EOF;
-    }
-
-    private Token peek() {
-        return tokens.get(current);
-    }
-
-    private Token previous() {
-        return tokens.get(current - 1);
-    }
-
-    private ParseError error(Token token, String message) {
-        Lox.error(token, message);
-        return new ParseError();
-    }
-
-    private void synchronize() {
-        advance();
-
-        while (!isAtEnd()) {
-            if (previous().type == SEMICOLON) return;
-
-            switch (peek().type) {
-                case CLASS:
-                case FUN:
-                case VAR:
-                case FOR:
-                case IF:
-                case WHILE:
-                case PRINT:
-                case RETURN:
-                    return;
-            }
-
-            advance();
-        }
     }
 }
