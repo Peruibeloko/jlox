@@ -1,8 +1,9 @@
-var a = 0;
-var temp;
+// test line comment
+print "nice"
 
-for (var b = 1; a < 10000; b = temp + b) {
-  print a;
-  temp = a;
-  a = b;
-}
+/* test well formed
+block comment */
+print "very nice"
+
+/**/
+print "wtf";
