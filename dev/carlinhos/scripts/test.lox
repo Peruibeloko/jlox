@@ -1,2 +1,2 @@
-var isOk = 2 > 3 ? "correct" : "nope";
+var isOk;
 print isOk;

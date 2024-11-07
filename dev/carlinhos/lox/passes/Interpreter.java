@@ -84,11 +84,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Object> {
 
     private Object lookUpVariable(Token name, Expr expr) {
         Integer distance = locals.get(expr);
+        Object value;
+
         if (distance != null) {
-            return environment.getAt(distance, name.lexeme);
+            value = environment.getAt(distance, name.lexeme);
         } else {
-            return globals.get(name);
+            value = globals.get(name);
         }
+
+        if (value != null) return value;
+        throw new RuntimeError(name, "'" + name.lexeme + "' is uninitialized.");
     }
 
     private boolean isTruthy(Object object) {
