@@ -5,10 +5,7 @@ import dev.carlinhos.lox.Lox;
 import dev.carlinhos.lox.entities.Stmt;
 import dev.carlinhos.lox.entities.Token;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Stack;
+import java.util.*;
 
 public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
@@ -22,16 +19,33 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     private final Interpreter interpreter;
     private final Stack<Map<String, Boolean>> scopes = new Stack<>();
+    private final Stack<List<Token>> unused = new Stack<>();
     private FunctionType currentFunction = FunctionType.NONE;
     private ClassType currentClass = ClassType.NONE;
 
     public Resolver(Interpreter interpreter) {
         this.interpreter = interpreter;
+
+        // Top level variables.
+        this.unused.push(new ArrayList<>());
     }
 
     // Internals.
 
     public void resolve(List<Stmt> statements) {
+        resolveStatements(statements);
+
+        // Check unused variables.
+        if (!unused.empty()) {
+            for (List<Token> variables : unused) {
+                for (Token variable : variables) {
+                    Lox.warn(variable, "Variable is never used.");
+                }
+            }
+        }
+    }
+
+    public void resolveStatements(List<Stmt> statements) {
         for (Stmt statement : statements) {
             resolve(statement);
         }
@@ -54,7 +68,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             declare(param);
             define(param);
         }
-        resolve(body);
+        resolveStatements(body);
         endScope();
 
         currentFunction = enclosingFunction;
@@ -62,14 +76,16 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     private void beginScope() {
         scopes.push(new HashMap<>());
+        unused.push(new ArrayList<>());
     }
 
     private void endScope() {
         scopes.pop();
+        unused.pop();
     }
 
     private void declare(Token name) {
-        if (scopes.isEmpty()) return;
+        if (scopes.empty()) return;
 
         Map<String, Boolean> scope = scopes.peek();
 
@@ -88,6 +104,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private void resolveLocal(Expr expr, Token name) {
         for (int i = scopes.size() - 1; i >= 0; i--) {
             if (scopes.get(i).containsKey(name.lexeme)) {
+                unused.get(i).remove(name);
                 interpreter.resolve(expr, scopes.size() - 1 - i);
                 return;
             }
@@ -142,6 +159,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             resolve(stmt.initializer);
         }
         define(stmt.name);
+        unused.peek().add(stmt.name);
         return null;
     }
 
@@ -208,7 +226,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     @Override
     public Void visitBlockStmt(Stmt.Block stmt) {
         beginScope();
-        resolve(stmt.statements);
+        resolveStatements(stmt.statements);
         endScope();
         return null;
     }
