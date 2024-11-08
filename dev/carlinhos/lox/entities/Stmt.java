@@ -10,6 +10,7 @@ public abstract class Stmt {
     R visitIfStmt(If stmt);
     R visitPrintStmt(Print stmt);
     R visitReturnStmt(Return stmt);
+    R visitBreakStmt(Break stmt);
     R visitWhileStmt(While stmt);
     R visitBlockStmt(Block stmt);
     R visitExpressionStmt(Expression stmt);
@@ -107,6 +108,19 @@ public abstract class Stmt {
 
     public final Token keyword;
     public final Expr value;
+  }
+
+  public static class Break extends Stmt {
+    public Break(Token keyword) {
+      this.keyword = keyword;
+    }
+
+    @Override
+    public <R> R accept(Visitor<R> visitor) {
+      return visitor.visitBreakStmt(this);
+    }
+
+    public final Token keyword;
   }
 
   public static class While extends Stmt {

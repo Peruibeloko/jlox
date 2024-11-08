@@ -183,6 +183,11 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     }
 
     @Override
+    public String visitBreakStmt(Stmt.Break stmt) {
+        return "(break)";
+    }
+
+    @Override
     public String visitVarStmt(Stmt.Var stmt) {
         if (stmt.initializer == null) {
             return parenthesize("var", new Expr.Literal(stmt.name.lexeme));

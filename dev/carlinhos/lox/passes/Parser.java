@@ -20,6 +20,7 @@ public class Parser {
 
     private final List<Token> tokens;
     private int current = 0;
+    private boolean isLoop = false;
 
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
@@ -178,6 +179,7 @@ public class Parser {
         if (match(IF)) return ifStatement();
         if (match(PRINT)) return printStatement();
         if (match(RETURN)) return returnStatement();
+        if (match(BREAK)) return breakStatement();
         if (match(WHILE)) return whileStatement();
         if (match(LEFT_BRACE)) return new Stmt.Block(block());
 
@@ -208,7 +210,9 @@ public class Parser {
         }
         consume(RIGHT_PAREN, "Expect ')' after for clauses.");
 
+        this.isLoop = true;
         Stmt body = statement();
+        this.isLoop = false;
 
         if (increment != null) {
             body = new Stmt.Block(Arrays.asList(body, new Stmt.Expression(increment)));
@@ -255,11 +259,24 @@ public class Parser {
         return new Stmt.Return(keyword, value);
     }
 
+    private Stmt breakStatement() {
+        if (!this.isLoop) {
+            error(previous(), "Can't break outside of a loop.");
+        }
+
+        Token keyword = previous();
+        consume(SEMICOLON, "Expect ';' after break.");
+        return new Stmt.Break(keyword);
+    }
+
     private Stmt whileStatement() {
         consume(LEFT_PAREN, "Expect '(' after 'while'.");
         Expr condition = expression();
         consume(RIGHT_PAREN, "Expect ')' after condition.");
+
+        isLoop = true;
         Stmt body = statement();
+        isLoop = false;
 
         return new Stmt.While(condition, body);
     }
@@ -445,21 +462,17 @@ public class Parser {
         if (match(TRUE)) return new Expr.Literal(true);
         if (match(NIL)) return new Expr.Literal(null);
 
-        if (match(NUMBER, STRING)) {
-            return new Expr.Literal(previous().literal);
-        }
+        if (match(NUMBER, STRING)) return new Expr.Literal(previous().literal);
+
+        if (match(THIS)) return new Expr.This(previous());
+
+        if (match(IDENTIFIER)) return new Expr.Variable(previous());
 
         if (match(SUPER)) {
             Token keyword = previous();
             consume(DOT, "Expect '.' after 'super'.");
             Token method = consume(IDENTIFIER, "Expect superclass method name.");
             return new Expr.Super(keyword, method);
-        }
-
-        if (match(THIS)) return new Expr.This(previous());
-
-        if (match(IDENTIFIER)) {
-            return new Expr.Variable(previous());
         }
 
         if (match(LEFT_PAREN)) {
