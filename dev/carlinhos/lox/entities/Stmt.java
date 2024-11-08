@@ -7,6 +7,7 @@ public abstract class Stmt {
     R visitClassStmt(Class stmt);
     R visitVarStmt(Var stmt);
     R visitFunctionStmt(Function stmt);
+    R visitLambdaStmt(Lambda stmt);
     R visitIfStmt(If stmt);
     R visitPrintStmt(Print stmt);
     R visitReturnStmt(Return stmt);
@@ -61,6 +62,21 @@ public abstract class Stmt {
     }
 
     public final Token name;
+    public final List<Token> params;
+    public final List<Stmt> body;
+  }
+
+  public static class Lambda extends Stmt {
+    public Lambda(List<Token> params, List<Stmt> body) {
+      this.params = params;
+      this.body = body;
+    }
+
+    @Override
+    public <R> R accept(Visitor<R> visitor) {
+      return visitor.visitLambdaStmt(this);
+    }
+
     public final List<Token> params;
     public final List<Stmt> body;
   }

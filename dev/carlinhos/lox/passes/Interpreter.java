@@ -189,6 +189,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Object> {
         return null;
     }
 
+    @Override
+    public Object visitLambdaStmt(Stmt.Lambda stmt) {
+        return new LoxLambda(stmt, environment);
+    }
+
     // Statements.
 
     @Override
@@ -383,6 +388,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Object> {
         }
 
         return function.call(this, arguments);
+    }
+
+    @Override
+    public Object visitLambdaExpr(Expr.Lambda expr) {
+        return new LoxLambda(expr, environment);
     }
 
     // Literals.

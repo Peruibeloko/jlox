@@ -13,7 +13,7 @@ import java.util.Stack;
 public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     private enum FunctionType {
-        NONE, FUNCTION, METHOD, INITIALIZER
+        NONE, FUNCTION, METHOD, INITIALIZER, LAMBDA
     }
 
     private enum ClassType {
@@ -45,16 +45,16 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         expr.accept(this);
     }
 
-    private void resolveFunction(Stmt.Function function, FunctionType type) {
+    private void resolveFunction(List<Token> params, List<Stmt> body, FunctionType type) {
         FunctionType enclosingFunction = currentFunction;
         currentFunction = type;
 
         beginScope();
-        for (Token param : function.params) {
+        for (Token param : params) {
             declare(param);
             define(param);
         }
-        resolve(function.body);
+        resolve(body);
         endScope();
 
         currentFunction = enclosingFunction;
@@ -122,13 +122,9 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         scopes.peek().put("this", true);
 
         for (Stmt.Function method : stmt.methods) {
-            FunctionType declaration = FunctionType.METHOD;
+            FunctionType type = method.name.lexeme.equals("init") ? FunctionType.INITIALIZER : FunctionType.METHOD;
 
-            if (method.name.lexeme.equals("init")) {
-                declaration = FunctionType.INITIALIZER;
-            }
-
-            resolveFunction(method, declaration);
+            resolveFunction(method.params, method.body, type);
         }
 
         endScope();
@@ -154,7 +150,13 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         declare(stmt.name);
         define(stmt.name);
 
-        resolveFunction(stmt, FunctionType.FUNCTION);
+        resolveFunction(stmt.params, stmt.body, FunctionType.FUNCTION);
+        return null;
+    }
+
+    @Override
+    public Void visitLambdaStmt(Stmt.Lambda stmt) {
+        resolveFunction(stmt.params, stmt.body, FunctionType.LAMBDA);
         return null;
     }
 
@@ -287,6 +289,12 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             resolve(argument);
         }
 
+        return null;
+    }
+
+    @Override
+    public Void visitLambdaExpr(Expr.Lambda expr) {
+        resolveFunction(expr.params, expr.body, FunctionType.LAMBDA);
         return null;
     }
 

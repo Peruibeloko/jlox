@@ -59,6 +59,14 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
         return builder.toString();
     }
 
+    private String parenthesizeList(List<Token> list) {
+        String result = "(";
+        result += list.stream().map(tk -> tk.lexeme).collect(Collectors.joining(" "));
+        result += ")";
+
+        return result;
+    }
+
     @Override
     public String visitBinaryExpr(Expr.Binary expr) {
         return parenthesize(expr.operator.lexeme, expr.left, expr.right);
@@ -72,6 +80,11 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
             args.add("(" + arg.accept(this) + ")");
         }
         return parenthesize(expr.callee.accept(this), args.toArray());
+    }
+
+    @Override
+    public String visitLambdaExpr(Expr.Lambda expr) {
+        return parenthesize("fun", parenthesizeList(expr.params), new Stmt.Block(expr.body));
     }
 
     @Override
@@ -158,12 +171,12 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
     @Override
     public String visitFunctionStmt(Stmt.Function stmt) {
+        return parenthesize("fun", stmt.name, parenthesizeList(stmt.params), new Stmt.Block(stmt.body));
+    }
 
-        String params = "(";
-        params += stmt.params.stream().map(tk -> tk.lexeme).collect(Collectors.joining(" "));
-        params += ")";
-
-        return parenthesize("fun", stmt.name, params, new Stmt.Block(stmt.body));
+    @Override
+    public String visitLambdaStmt(Stmt.Lambda stmt) {
+        return parenthesize("fun", parenthesizeList(stmt.params), new Stmt.Block(stmt.body));
     }
 
     @Override

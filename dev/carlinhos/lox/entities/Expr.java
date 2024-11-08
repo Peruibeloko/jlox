@@ -13,6 +13,7 @@ public abstract class Expr {
     R visitUnaryExpr(Unary expr);
     R visitCommaExpr(Comma expr);
     R visitCallExpr(Call expr);
+    R visitLambdaExpr(Lambda expr);
     R visitLiteralExpr(Literal expr);
     R visitGetExpr(Get expr);
     R visitSetExpr(Set expr);
@@ -157,6 +158,21 @@ public abstract class Expr {
     public final Expr callee;
     public final Token paren;
     public final List<Expr> arguments;
+  }
+
+  public static class Lambda extends Expr {
+    public Lambda(List<Token> params, List<Stmt> body) {
+      this.params = params;
+      this.body = body;
+    }
+
+    @Override
+    public <R> R accept(Visitor<R> visitor) {
+      return visitor.visitLambdaExpr(this);
+    }
+
+    public final List<Token> params;
+    public final List<Stmt> body;
   }
 
   public static class Literal extends Expr {

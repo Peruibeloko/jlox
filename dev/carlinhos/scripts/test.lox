@@ -1,7 +1,15 @@
-for (var i = 0; i < 5; i = i + 1) {
-    for (var j = i; j < i + 5; j = j + 1) {
-        if (j == i + 3) break;
-        print i + j;
-    }
-    print "---";
+fun sayHi(name) {
+    print "Hi, " + name + "!";
 }
+
+fun thrice(fn) {
+  for (var i = 1; i <= 3; i = i + 1) {
+    fn(i);
+  }
+}
+
+sayHi("Carlos");
+
+thrice(fun (a) {
+  print a;
+});
